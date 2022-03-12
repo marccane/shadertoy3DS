@@ -12,10 +12,17 @@
 
 typedef struct { float position[3]; float color[4]; } vertex;
 
+//static const float DEF_COLOR[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+//whatever
+#define DEF_COLOR { 1.0f, 0.0f, 0.0f, 1.0f }
+#define RED_COLOR { 1.0f, 0.0f, 0.0f, 1.0f }
+#define GREEN_COLOR { 0.0f, 1.0f, 0.0f, 1.0f }
+#define BLUE_COLOR { 0.0f, 0.0f, 1.0f, 1.0f }
+
 static const vertex vertex_list[] =
 {
-	{ { 200.0f, 200.0f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-	{ { 100.0f, 40.0f, 0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+	{ { 200.0f, 200.0f, 0.5f }, DEF_COLOR },
+	{ { 100.0f, 40.0f, 0.5f }, DEF_COLOR },
 	{ { 300.0f, 40.0f, 0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
 };
 
@@ -43,7 +50,7 @@ static void sceneInit(void)
 	C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
 	AttrInfo_Init(attrInfo);
 	AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3); // v0=position
-	AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 4); // v1=color //ULL! ALPHA not truly needed for shadertoy
+	AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 4); // v1=color
 	//AttrInfo_AddFixed(attrInfo, 1); // v1=color
 
 	// Set the fixed attribute (color) to solid white
@@ -52,9 +59,63 @@ static void sceneInit(void)
 	// Compute the projection matrix
 	Mtx_OrthoTilt(&projection, 0.0, 400.0, 0.0, 240.0, 0.0, 1.0, true);
 
+	// Dinamically create the triangles
+	//const int TOTAL_TRIANGLES = 266, UL_TRIS_PER_ROW = 133, BR_TRIS_PER_ROW = UL_TRIS_PER_ROW;
+	#define TOTAL_TRIANGLES 266
+	#define UL_TRIS_PER_ROW 133
+	//static so it gets allocated in the .data section not on stack
+	static vertex din_vertex_list[TOTAL_TRIANGLES*3]; //TODO: Make sure this is the right number of vertices
+	//podem fer primer tots els triangles "UL facing" i després els "DR facing"
+
+	#define DEF_DEPTH 0.5f
+	#define OFF 2.1f
+	//UL-facing triangles should be: (First row, (x,y))
+	//[[(0,0),(1,0),(0,1)],[(3,0),(4,0),(3,1)],...]
+	//Second row:
+	//[[(0,2),(1,2),(0,3)],[(3,2),(4,2),(3,3)],...]
+	for(int i=0;i<UL_TRIS_PER_ROW;++i){
+		//JUST THE FIRST ROW
+		float bx = i*3.0f; //baseX
+		din_vertex_list[i*3] 	= (vertex) { { bx, 		0.0f, 	0.5f }, RED_COLOR };
+		din_vertex_list[i*3+1] 	= (vertex) { { bx+OFF, 	0.0f, 	0.5f }, GREEN_COLOR };
+		din_vertex_list[i*3+2] 	= (vertex) { { bx, 		OFF, 0.5f }, BLUE_COLOR };
+	}
+	
+	//DR-facing triangles should be:
+	//[[(2,0),(1,1),(2,1)],[(5,0),(4,1),(5,1)],...]
+	//Second row:
+	//[[(2,2),(1,3),(2,3)],[(5,2),(4,3),(5,3)],...]
+	// for(int i=0;i<UL_TRIS_PER_ROW;++i){
+	// 	//JUST THE FIRST ROW
+	// 	float bx = i*3.0f; //baseX
+	// 	din_vertex_list[i*3] 	= (vertex) { { bx+2.1f,	0.0f, 	0.5f }, RED_COLOR };
+	// 	din_vertex_list[i*3+1] 	= (vertex) { { bx+1.0f, 2.1f, 	0.5f }, GREEN_COLOR };
+	// 	din_vertex_list[i*3+2] 	= (vertex) { { bx+2.1f,	2.1f, 	0.5f }, BLUE_COLOR };
+	// }
+
+	// din_vertex_list[0] 	= (vertex) { { 3.1f,	0.0f, 	0.5f }, RED_COLOR };
+	// din_vertex_list[1] 	= (vertex) { { 1.0f, 2.1f, 	0.5f }, GREEN_COLOR };
+	// din_vertex_list[2] 	= (vertex) { { 3.1f,	2.1f, 	0.5f }, BLUE_COLOR };
+
+	//din_vertex_list[0] 	= (vertex) { { 0.0f,	0.0f, 	0.5f }, RED_COLOR };
+	din_vertex_list[0] 	= (vertex) { { 5.1f,	5.1f, 	0.5f }, RED_COLOR };
+	din_vertex_list[1] 	= (vertex) { { OFF, 	0.0f, 	0.5f }, GREEN_COLOR };
+	din_vertex_list[2] 	= (vertex) { { 0.0f,	OFF, 	0.5f }, BLUE_COLOR };
+
+	//Working BL
+	// din_vertex_list[0] 	= (vertex) { { 0.0f,	0.0f, 	0.5f }, RED_COLOR };
+	// din_vertex_list[1] 	= (vertex) { { OFF, 	0.0f, 	0.5f }, GREEN_COLOR };
+	// din_vertex_list[2] 	= (vertex) { { 0.0f,	OFF, 	0.5f }, BLUE_COLOR };
+
+	// din_vertex_list[0] 	= (vertex) { { OFF2,	0.0f, 	0.5f }, RED_COLOR };
+	// din_vertex_list[1] 	= (vertex) { { bx+OFF, 	OFF, 	0.5f }, GREEN_COLOR };
+	// din_vertex_list[2] 	= (vertex) { { bx+OFF2,	OFF, 	0.5f }, BLUE_COLOR };
+
 	// Create the VBO (vertex buffer object)
-	vbo_data = linearAlloc(sizeof(vertex_list));
-	memcpy(vbo_data, vertex_list, sizeof(vertex_list));
+	// vbo_data = linearAlloc(sizeof(vertex_list));
+	// memcpy(vbo_data, vertex_list, sizeof(vertex_list));
+	vbo_data = linearAlloc(sizeof(din_vertex_list));
+	memcpy(vbo_data, din_vertex_list, sizeof(din_vertex_list));
 
 	// Configure buffers
 	C3D_BufInfo* bufInfo = C3D_GetBufInfo();
@@ -75,7 +136,7 @@ static void sceneRender(void)
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, &projection);
 
 	// Draw the VBO
-	C3D_DrawArrays(GPU_TRIANGLES, 0, vertex_list_count);
+	C3D_DrawArrays(GPU_TRIANGLES, 0, UL_TRIS_PER_ROW*3);
 }
 
 static void sceneExit(void)
