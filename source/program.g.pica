@@ -4,6 +4,7 @@
 
 ; Uniforms
 .fvec projection[4]
+.ivec unif_loop_i0
 
 ; Constants
 .constf myconst(0.0, 1.0, -1.0, 0.5)
@@ -11,18 +12,17 @@
 .alias  ones  myconst.yyyy ; Vector full of ones
 .alias  half  myconst.wwww
 
-.constf orange(1.0, 0.77, 0.02, 1.0)
+.constf myconst2(0.01, 0.0, 0.0, 0.0)
 
 .constf triangle3V1(0.5, 5.0, 0.5, 1.0)
 .constf offsetPixTriV1(-0.5, -1.0, 0, 0)
 .constf offsetPixTriV2(0.5, -1.0, 0, 0)
+.constf orange(1.0, 0.77, 0.02, 1.0)
 
-.constf triangleUP(0.5, 6.0, 0.5, 1.0)
-.constf triangleRIGHT(1.5, 5.0, 0.5, 1.0)
-.constf triangleDOWN(0.5, 4.0, 0.5, 1.0)
-.constf color1(0.47, 0.03, 0.3, 1.0)
-.constf color2(0.29, 0.55, 0.29, 1.0)
-.constf color3(0.57, 0.49, 0.45, 1.0)
+.constf debugTriangle(200.0, 240.0, 0.5, 1.0)
+.constf debugTriangleOffset1(-100.0, -120.0, 0, 0)
+.constf debugTriangleOffset2(100.0, -120.0, 0, 0)
+.constf debugColor(0.0, 0.0, 0.0, 1.0)
 
 ; Outputs - this time the type *is* used
 .out outpos position
@@ -46,29 +46,20 @@
 	;set solid color
 	mov r9, orange
 	call emit_triangle_solid_color
-	
-	;UP
-	mov r0, triangleUP
-	add r1, r0, r15
-	add r2, r0, r14
-	;set solid color
-	mov r9, color1
-	call emit_triangle_solid_color
 
-	;right
-	mov r0, triangleRIGHT
+	mov r15, debugTriangleOffset1
+	mov r14, debugTriangleOffset2
+	;DEBUG TRIANGLE
+	mov r0, debugTriangle
 	add r1, r0, r15
 	add r2, r0, r14
 	;set solid color
-	mov r9, color2
-	call emit_triangle_solid_color
+	mov r9, debugColor
 
-	;down
-	mov r0, triangleDOWN
-	add r1, r0, r15
-	add r2, r0, r14
-	;set solid color
-	mov r9, color3
+	mov r3, myconst2.xwww
+	for i0
+		add r9, r9, r3
+	.end
 	call emit_triangle_solid_color
 
 	; We're finished
