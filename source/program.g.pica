@@ -11,6 +11,20 @@
 .alias  ones  myconst.yyyy ; Vector full of ones
 .alias  half  myconst.wwww
 
+.constf orange(1.0, 0.77, 0.02, 1.0)
+
+.constf triangle1V1(200.0, 80.0, 0.5, 1.0)
+;.constf triangle1V2(100.0, 0.0, 0.5, 1.0)
+;.constf triangle1V3(300.0, 0.0, 0.5, 1.0)
+.constf triangle2V1(100.0, 200.0, 0.5, 1.0)
+.constf triangle3V1(0.0, 5.0, 0.5, 1.0)
+
+.constf offsetV1(-100.0, -80.0, 0, 0)
+.constf offsetV2(100.0, -80.0, 0, 0)
+
+.constf offsetPixTriV1(-5.0, -5.0, 0, 0)
+.constf offsetPixTriV2(5.0, -5.0, 0, 0)
+
 ; Outputs - this time the type *is* used
 .out outpos position
 .out outclr color
@@ -23,34 +37,29 @@
 
 .entry gmain
 .proc gmain
-	; Calculate the midpoints of the vertices (r4,r5,r6)
-	mov r4, v0
-	add r4, v2,   r4
-	mul r4, half, r4
-	mov r5, v2
-	add r5, v4,   r5
-	mul r5, half, r5
-	mov r6, v4
-	add r6, v0,   r6
-	mul r6, half, r6
-
-	; Emit the first triangle
-	mov r0, v0
-	mov r1, r4
-	mov r2, r6
+	mov r0, triangle1V1
+	mov r15, offsetV1
+	add r1, r0, r15
+	mov r15, offsetV2
+	add r2, r0, r15
 	call emit_triangle
 
-	; Emit the second triangle
-	mov r0, r4
-	mov r1, v2
-	mov r2, r5
+	mov r0, triangle2V1
+	mov r15, offsetV1
+	add r1, r0, r15
+	mov r15, offsetV2
+	add r2, r0, r15
 	call emit_triangle
 
-	; Emit the third triangle
-	mov r0, r6
-	mov r1, r5
-	mov r2, v4
-	call emit_triangle
+	;set vertex positions
+	mov r0, triangle3V1
+	mov r15, offsetPixTriV1
+	add r1, r0, r15
+	mov r15, offsetPixTriV2
+	add r2, r0, r15
+	;set solid color
+	mov r9, orange
+	call emit_triangle_solid_color
 
 	; We're finished
 	end
@@ -84,6 +93,32 @@
 	setemit 2, prim
 	mov r8, r2
 	mov r9, v5
+	call process_vertex
+	emit
+.end
+
+; Subroutine
+; Inputs:
+;   r0: vertex 1 position 
+;   r1: vertex 2 position
+;   r2: vertex 3 position
+;	r9: solid color
+.proc emit_triangle_solid_color
+	; Emit the first vertex
+	setemit 0
+	mov r8, r0
+	call process_vertex
+	emit
+
+	; Emit the second vertex
+	setemit 1
+	mov r8, r1
+	call process_vertex
+	emit
+
+	; Emit the third vertex and finish the primitive
+	setemit 2, prim
+	mov r8, r2
 	call process_vertex
 	emit
 .end
