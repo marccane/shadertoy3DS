@@ -13,17 +13,16 @@
 
 .constf orange(1.0, 0.77, 0.02, 1.0)
 
-.constf triangle1V1(200.0, 80.0, 0.5, 1.0)
-;.constf triangle1V2(100.0, 0.0, 0.5, 1.0)
-;.constf triangle1V3(300.0, 0.0, 0.5, 1.0)
-.constf triangle2V1(100.0, 200.0, 0.5, 1.0)
-.constf triangle3V1(0.0, 5.0, 0.5, 1.0)
+.constf triangle3V1(0.5, 5.0, 0.5, 1.0)
+.constf offsetPixTriV1(-0.5, -1.0, 0, 0)
+.constf offsetPixTriV2(0.5, -1.0, 0, 0)
 
-.constf offsetV1(-100.0, -80.0, 0, 0)
-.constf offsetV2(100.0, -80.0, 0, 0)
-
-.constf offsetPixTriV1(-5.0, -5.0, 0, 0)
-.constf offsetPixTriV2(5.0, -5.0, 0, 0)
+.constf triangleUP(0.5, 6.0, 0.5, 1.0)
+.constf triangleRIGHT(1.5, 5.0, 0.5, 1.0)
+.constf triangleDOWN(0.5, 4.0, 0.5, 1.0)
+.constf color1(0.47, 0.03, 0.3, 1.0)
+.constf color2(0.29, 0.55, 0.29, 1.0)
+.constf color3(0.57, 0.49, 0.45, 1.0)
 
 ; Outputs - this time the type *is* used
 .out outpos position
@@ -37,28 +36,39 @@
 
 .entry gmain
 .proc gmain
-	mov r0, triangle1V1
-	mov r15, offsetV1
-	add r1, r0, r15
-	mov r15, offsetV2
-	add r2, r0, r15
-	call emit_triangle
-
-	mov r0, triangle2V1
-	mov r15, offsetV1
-	add r1, r0, r15
-	mov r15, offsetV2
-	add r2, r0, r15
-	call emit_triangle
+	mov r15, offsetPixTriV1
+	mov r14, offsetPixTriV2
 
 	;set vertex positions
 	mov r0, triangle3V1
-	mov r15, offsetPixTriV1
 	add r1, r0, r15
-	mov r15, offsetPixTriV2
-	add r2, r0, r15
+	add r2, r0, r14
 	;set solid color
 	mov r9, orange
+	call emit_triangle_solid_color
+	
+	;UP
+	mov r0, triangleUP
+	add r1, r0, r15
+	add r2, r0, r14
+	;set solid color
+	mov r9, color1
+	call emit_triangle_solid_color
+
+	;right
+	mov r0, triangleRIGHT
+	add r1, r0, r15
+	add r2, r0, r14
+	;set solid color
+	mov r9, color2
+	call emit_triangle_solid_color
+
+	;down
+	mov r0, triangleDOWN
+	add r1, r0, r15
+	add r2, r0, r14
+	;set solid color
+	mov r9, color3
 	call emit_triangle_solid_color
 
 	; We're finished
