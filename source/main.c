@@ -23,10 +23,11 @@ static const vertex vertex_list[] =
 
 static DVLB_s* program_dvlb;
 static shaderProgram_s program;
-static int uLoc_projection, uLoc_unif_loop_i0;
+static int uLoc_projection, uLoc_unif_loop_i0, uLoc_unif_loop_i1;
 static C3D_Mtx projection;
 //According to 3dbrew the loop will do <unif_loop_i0_iterations>+1 iterations
-static const int unif_loop_i0_initial_value=0, unif_loop_i0_iterations=30, unif_loop_i0_increment=1;
+static const int unif_loop_i0_initial_value=0, unif_loop_i0_iterations=398, unif_loop_i0_increment=1; //possible off by one
+static const int unif_loop_i1_initial_value=0, unif_loop_i1_iterations=10/*238*/, unif_loop_i1_increment=1; //possible off by one
 
 static void* vbo_data;
 
@@ -43,6 +44,7 @@ static void sceneInit(void)
 	// Get the location of the projection matrix uniform
 	uLoc_projection = shaderInstanceGetUniformLocation(program.geometryShader, "projection");
 	uLoc_unif_loop_i0 = shaderInstanceGetUniformLocation(program.geometryShader, "unif_loop_i0");
+	uLoc_unif_loop_i1 = shaderInstanceGetUniformLocation(program.geometryShader, "unif_loop_i1");
 
 	// Configure attributes for use with the vertex shader
 	C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
@@ -52,6 +54,11 @@ static void sceneInit(void)
 
 	// Compute the projection matrix
 	Mtx_OrthoTilt(&projection, 0.0, 400.0, 0.0, 240.0, 0.0, 1.0, true);
+
+	// Update the (constant) uniforms
+	C3D_FVUnifMtx4x4(GPU_GEOMETRY_SHADER, uLoc_projection, &projection);
+	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i0, unif_loop_i0_iterations, unif_loop_i0_initial_value, unif_loop_i0_increment, 0xDEAD);
+	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i1, unif_loop_i1_iterations, unif_loop_i1_initial_value, unif_loop_i1_increment, 0xDEAD);
 
 	// Create the VBO (vertex buffer object)
 	vbo_data = linearAlloc(sizeof(vertex_list));
@@ -72,10 +79,6 @@ static void sceneInit(void)
 
 static void sceneRender(void)
 {
-	// Update the uniforms
-	C3D_FVUnifMtx4x4(GPU_GEOMETRY_SHADER, uLoc_projection, &projection);
-	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i0, unif_loop_i0_iterations, unif_loop_i0_initial_value, unif_loop_i0_increment, 0xDEAD);
-
 	// Draw the VBO - GPU_GEOMETRY_PRIM allows the geoshader to control primitive emission
 	C3D_DrawArrays(GPU_GEOMETRY_PRIM, 0, vertex_list_count);
 }
