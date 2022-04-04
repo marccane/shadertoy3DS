@@ -15,17 +15,10 @@
 
 .constf myconst2(0.01, 0.0, 0.0, 0.0)
 
-.constf triangle3V1(0.5, 5.0, 0.5, 1.0)
+.constf initialTrianglePos(0.5, 1.0, 0.5, 1.0)
 .constf offsetPixTriV1(-0.5, -1.0, 0, 0)
 .constf offsetPixTriV2(0.5, -1.0, 0, 0)
 .constf orange(1.0, 0.77, 0.02, 1.0)
-
-.constf debugTriangle(200.0, 240.0, 0.5, 1.0)
-.constf debugTriangleOffset1(-100.0, -120.0, 0, 0)
-.constf debugTriangleOffset2(100.0, -120.0, 0, 0)
-.constf debugColor(0.0, 0.0, 0.0, 1.0)
-
-.constf initialTrianglePos(0.5, 1.0, 0.5, 1.0)
 
 ; Outputs - this time the type *is* used
 .out outpos position
@@ -41,14 +34,6 @@
 .proc gmain
 	mov r15, offsetPixTriV1
 	mov r14, offsetPixTriV2
-
-	;set vertex positions
-	mov r0, triangle3V1
-	add r1, r0, r15
-	add r2, r0, r14
-	;set solid color
-	mov r9, orange
-	call emit_triangle_solid_color
 
 	mov r3, initialTrianglePos ;tmpPos
 	mov r4, myconst.yxxx ;tmpDisplacementX
@@ -81,60 +66,8 @@
 		add r3, r3, r4
 	.end
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	mov r15, debugTriangleOffset1
-	mov r14, debugTriangleOffset2
-	;DEBUG TRIANGLE
-	mov r0, debugTriangle
-	add r1, r0, r15
-	add r2, r0, r14
-	;set solid color
-	mov r9, debugColor
-
-	mov r3, myconst2.xwww
-	mov r4, myconst2.wxww
-	for i0 ; 0->399
-		add r9, r9, r3
-	.end
-	for i1 ; 0->239
-		add r9, r9, r4
-	.end
-	call emit_triangle_solid_color
-
 	; We're finished
 	end
-.end
-
-; Subroutine
-; Inputs:
-;   r0: vertex 1 position 
-;   r1: vertex 2 position
-;   r2: vertex 3 position
-; Relies on:
-;   v1: vertex 1 color 
-;   v3: vertex 2 color
-;   v5: vertex 3 color
-.proc emit_triangle
-	; Emit the first vertex
-	setemit 0
-	mov r8, r0
-	mov r9, v1
-	call process_vertex
-	emit
-
-	; Emit the second vertex
-	setemit 1
-	mov r8, r1
-	mov r9, v3
-	call process_vertex
-	emit
-
-	; Emit the third vertex and finish the primitive
-	setemit 2, prim
-	mov r8, r2
-	mov r9, v5
-	call process_vertex
-	emit
 .end
 
 ; Subroutine
