@@ -52,14 +52,18 @@
 
 	mov r3, initialTrianglePos ;tmpPos
 	mov r4, myconst.yxxx ;tmpDisplacementX
+	mov r5, myconst.xyxx ;tmpDisplacementY
 	for i0 ; 0->399
-		;set vertex positions
-		mov r0, r3
-		add r1, r0, r15
-		add r2, r0, r14
-		;set solid color
-		mov r9, orange
-		call emit_triangle_solid_color
+		for i1
+			;set vertex positions
+			mov r0, r3
+			add r1, r0, r15
+			add r2, r0, r14
+			;set solid color
+			mov r9, orange
+			call emit_triangle_solid_color
+			add r3, r3, r5
+		.end
 
 		add r3, r3, r4
 	.end
