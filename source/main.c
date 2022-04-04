@@ -26,8 +26,9 @@ static shaderProgram_s program;
 static int uLoc_projection, uLoc_unif_loop_i0, uLoc_unif_loop_i1;
 static C3D_Mtx projection;
 //According to 3dbrew the loop will do <unif_loop_i0_iterations>+1 iterations
-static const int unif_loop_i0_initial_value=0, unif_loop_i0_iterations=398, unif_loop_i0_increment=1; //possible off by one
-static const int unif_loop_i1_initial_value=0, unif_loop_i1_iterations=10/*238*/, unif_loop_i1_increment=1; //possible off by one
+//Not documented anywhere I could find but this "Integer" registers in the GPU are 1 byte only (Biggest value is 255)
+static const int unif_loop_i0_initial_value=0, unif_loop_i0_iterations=199, unif_loop_i0_increment=1; //possible off by one
+static const int unif_loop_i1_initial_value=0, unif_loop_i1_iterations=239, unif_loop_i1_increment=1; //possible off by one
 
 static void* vbo_data;
 
