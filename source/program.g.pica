@@ -7,13 +7,15 @@
 .ivec unif_loop_i0
 .ivec unif_loop_i1
 
+; Outputs - this time the type *is* used
+.out outpos position
+.out outclr color
+
 ; Global constants
 .constf myconst(0.0, 1.0, -1.0, 0.5)
 .alias  zeros myconst.xxxx ; Vector full of zeros
 .alias  ones  myconst.yyyy ; Vector full of ones
 .alias  half  myconst.wwww
-
-.constf displacementHelper(0.0, -1.0, 0.5, -0.5)
 
 .constf iResolution(400.0, 240.0, 0, 0)
 .constf iResolutionInverse(0.0025, 0.004166666666666667, 1, 1)
@@ -23,10 +25,6 @@
 ; Shader constants
 ;.constf shaderConst1(0, 1, 0.075, 1.0)
 
-; Outputs - this time the type *is* used
-.out outpos position
-.out outclr color
-
 ; Inputs: we will receive the following inputs:
 ; v0-v1: position/color of the first vertex
 ; v2-v3: position/color of the second vertex
@@ -34,7 +32,7 @@
 ; SUMMARY: vX where X is even (parell) -> position, if X is odd -> color
 .entry gmain
 .proc gmain
-	mov r15, displacementHelper
+	mov r15, myconst
 	mov r13, iResolutionInverse; iResolution
 	
 	mov r3, initialTrianglePos ;tmpPos
@@ -43,25 +41,25 @@
 		for i1 ; 0->239
 			call mainImage
 			;set vertex positions
-			add r1, r0, r15.wyxx
-			add r2, r0, r15.zyxx
+			add r1, r0, -r15.wyxx ; -0.5, -1.0, 0, 0
+			add r2, r0, r15.wzxx ; 0.5, -1.0, 0, 0
 			call emit_triangle_solid_color
-			add r0, r0, -r15.xyxx
+			add r0, r0, r15.xyxx ; 0, 1, 0, 0
 		.end
-		add r3, r3, -r15.yxxx
+		add r3, r3, r15.yxxx ; 1, 0, 0, 0
 	.end
 
 	for i0 ; 0->199
 		mov r0, r3
 		for i1 ; 0->239
 			call mainImage
-			; set vertex positions
-			add r1, r0, r15.wyxx
-			add r2, r0, r15.zyxx
+			;set vertex positions
+			add r1, r0, -r15.wyxx ; -0.5, -1.0, 0, 0
+			add r2, r0, r15.wzxx ; 0.5, -1.0, 0, 0
 			call emit_triangle_solid_color
-			add r0, r0, -r15.xyxx
+			add r0, r0, r15.xyxx ; 0, 1, 0, 0
 		.end
-		add r3, r3, -r15.yxxx
+		add r3, r3, r15.yxxx ; 1, 0, 0, 0
 	.end
 	end
 .end
