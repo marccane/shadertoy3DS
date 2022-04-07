@@ -13,16 +13,15 @@
 .alias  ones  myconst.yyyy ; Vector full of ones
 .alias  half  myconst.wwww
 
+.constf displacementHelper(0.0, -1.0, 0.5, -0.5)
+
 .constf iResolution(400.0, 240.0, 0, 0)
 .constf iResolutionInverse(0.0025, 0.004166666666666667, 1, 1)
 
 .constf initialTrianglePos(0.5, 1.0, 0.5, 1.0)
-.constf offsetPixTriV1(-0.5, -1.0, 0, 0)
-.constf offsetPixTriV2(0.5, -1.0, 0, 0)
-.constf orange(1.0, 0.77, 0.02, 1.0)
 
 ; Shader constants
-.constf shaderConst1(0, 1, 0.075, 1.0)
+;.constf shaderConst1(0, 1, 0.075, 1.0)
 
 ; Outputs - this time the type *is* used
 .out outpos position
@@ -35,24 +34,21 @@
 ; SUMMARY: vX where X is even (parell) -> position, if X is odd -> color
 .entry gmain
 .proc gmain
-	mov r15, offsetPixTriV1
-	mov r14, offsetPixTriV2
+	mov r15, displacementHelper
 	mov r13, iResolutionInverse; iResolution
-
+	
 	mov r3, initialTrianglePos ;tmpPos
-	mov r4, myconst.yxxx ;tmpDisplacementX (1,0,0,0)
-	mov r5, myconst.xyxx ;tmpDisplacementY (0,1,0,0)
 	for i0 ; 0->199
 		mov r0, r3
 		for i1 ; 0->239
 			call mainImage
 			;set vertex positions
-			add r1, r0, r15
-			add r2, r0, r14
+			add r1, r0, r15.wyxx
+			add r2, r0, r15.zyxx
 			call emit_triangle_solid_color
-			add r0, r0, r5
+			add r0, r0, -r15.xyxx
 		.end
-		add r3, r3, r4
+		add r3, r3, -r15.yxxx
 	.end
 
 	for i0 ; 0->199
@@ -60,23 +56,21 @@
 		for i1 ; 0->239
 			call mainImage
 			; set vertex positions
-			add r1, r0, r15
-			add r2, r0, r14
+			add r1, r0, r15.wyxx
+			add r2, r0, r15.zyxx
 			call emit_triangle_solid_color
-			add r0, r0, r5
+			add r0, r0, -r15.xyxx
 		.end
-		add r3, r3, r4
+		add r3, r3, -r15.yxxx
 	.end
 	end
 .end
 
-; Can MODIFY registers r1-2, 6-8, 10-12
-; Has to put the resulting color to r9 with w=1.0
-; in vec2 fragCoord r0.xy
+; in vec2 fragCoord -> r0.xy
 ; out vec4 fragColor -> r9
 .proc mainImage
 	mul r9, r0, r13
-	mov r9.zw, myconst.yy
+	mov r9.zw, myconst.wy ; I have no idea why changing .yy to .xy or .wy has no effect
 .end
 
 ; Subroutine
