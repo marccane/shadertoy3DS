@@ -14,9 +14,7 @@
 .alias  half  myconst.wwww
 
 .constf iResolution(400.0, 240.0, 0, 0)
-.constf iResolutionInverse(0.0025, 0.004166666666666667, 0, 0)
-
-.constf auxFragCoordConsts(-0.0025, -0.004166666666666667, 0, 0)
+.constf iResolutionInverse(0.0025, 0.004166666666666667, 1, 1)
 
 .constf initialTrianglePos(0.5, 1.0, 0.5, 1.0)
 .constf offsetPixTriV1(-0.5, -1.0, 0, 0)
@@ -35,7 +33,6 @@
 ; v2-v3: position/color of the second vertex
 ; v4-v5: position/color of the third vertex
 ; SUMMARY: vX where X is even (parell) -> position, if X is odd -> color
-
 .entry gmain
 .proc gmain
 	mov r15, offsetPixTriV1
@@ -48,18 +45,10 @@
 	for i0 ; 0->199
 		mov r0, r3
 		for i1 ; 0->239
-			;calculate fragCoord
-			mov r12, auxFragCoordConsts
-			mul r12, r0, r12 ; for the moment we get x and y from r0 which will have a 0.5f offset
-			;mov r1, myconst.wwxx
-			;add r12, r1, r12
-
 			call mainImage
 			;set vertex positions
 			add r1, r0, r15
 			add r2, r0, r14
-			;mul r9, r13, r0
-			;mov r9.zw, myconst.yy
 			call emit_triangle_solid_color
 			add r0, r0, r5
 		.end
@@ -70,35 +59,24 @@
 		mov r0, r3
 		for i1 ; 0->239
 			call mainImage
-			;set vertex positions
+			; set vertex positions
 			add r1, r0, r15
 			add r2, r0, r14
-			mul r9, r13, r0
-			mov r9.zw, myconst.yy
-			;mov r9, orange ; ignore for the moment
 			call emit_triangle_solid_color
 			add r0, r0, r5
 		.end
 		add r3, r3, r4
 	.end
-
-	; We're finished
 	end
 .end
 
-; Can MODIFY registers r1-2, 6-8, 10-11
+; Can MODIFY registers r1-2, 6-8, 10-12
 ; Has to put the resulting color to r9 with w=1.0
-; in vec2 fragCoord r12 (0.5 -> -0.5)
+; in vec2 fragCoord r0.xy
 ; out vec4 fragColor -> r9
 .proc mainImage
-	; vec2 uv = fragCoord.xy / iResolution.xy;
-	mul r8, r12, r13
-	;mov r8.x, myconst.y
-	;fragColor = vec4(uv,0.5+0.5*0.3,1.0);
-
-	;mov r9.zw, shaderConst1.zw
-	mov r9, shaderConst1
-	mov r9.xy, r8.xy ; aixo no fa el mateix que abans que vol dir que no entenc com funciona el mov/swizzle, revisar linia 54
+	mul r9, r0, r13
+	mov r9.zw, myconst.yy
 .end
 
 ; Subroutine
