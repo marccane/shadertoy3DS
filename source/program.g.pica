@@ -7,18 +7,24 @@
 .ivec unif_loop_i0
 .ivec unif_loop_i1
 
-; Constants
+; Global constants
 .constf myconst(0.0, 1.0, -1.0, 0.5)
 .alias  zeros myconst.xxxx ; Vector full of zeros
 .alias  ones  myconst.yyyy ; Vector full of ones
 .alias  half  myconst.wwww
 
-.constf myconst2(0.01, 0.0, 0.0, 0.0)
+.constf iResolution(400.0, 240.0, 0, 0)
+.constf iResolutionInverse(0.0025, 0.004166666666666667, 0, 0)
+
+.constf auxFragCoordConsts(-0.0025, -0.004166666666666667, 0, 0)
 
 .constf initialTrianglePos(0.5, 1.0, 0.5, 1.0)
 .constf offsetPixTriV1(-0.5, -1.0, 0, 0)
 .constf offsetPixTriV2(0.5, -1.0, 0, 0)
 .constf orange(1.0, 0.77, 0.02, 1.0)
+
+; Shader constants
+.constf shaderConst1(0, 1, 0.075, 1.0)
 
 ; Outputs - this time the type *is* used
 .out outpos position
@@ -34,18 +40,26 @@
 .proc gmain
 	mov r15, offsetPixTriV1
 	mov r14, offsetPixTriV2
+	mov r13, iResolutionInverse; iResolution
 
 	mov r3, initialTrianglePos ;tmpPos
-	mov r4, myconst.yxxx ;tmpDisplacementX
-	mov r5, myconst.xyxx ;tmpDisplacementY
+	mov r4, myconst.yxxx ;tmpDisplacementX (1,0,0,0)
+	mov r5, myconst.xyxx ;tmpDisplacementY (0,1,0,0)
 	for i0 ; 0->199
 		mov r0, r3
 		for i1 ; 0->239
+			;calculate fragCoord
+			mov r12, auxFragCoordConsts
+			mul r12, r0, r12 ; for the moment we get x and y from r0 which will have a 0.5f offset
+			;mov r1, myconst.wwxx
+			;add r12, r1, r12
+
+			call mainImage
 			;set vertex positions
 			add r1, r0, r15
 			add r2, r0, r14
-			;set solid color
-			mov r9, orange
+			;mul r9, r13, r0
+			;mov r9.zw, myconst.yy
 			call emit_triangle_solid_color
 			add r0, r0, r5
 		.end
@@ -55,11 +69,13 @@
 	for i0 ; 0->199
 		mov r0, r3
 		for i1 ; 0->239
+			call mainImage
 			;set vertex positions
 			add r1, r0, r15
 			add r2, r0, r14
-			;set solid color
-			mov r9, orange
+			mul r9, r13, r0
+			mov r9.zw, myconst.yy
+			;mov r9, orange ; ignore for the moment
 			call emit_triangle_solid_color
 			add r0, r0, r5
 		.end
@@ -68,6 +84,21 @@
 
 	; We're finished
 	end
+.end
+
+; Can MODIFY registers r1-2, 6-8, 10-11
+; Has to put the resulting color to r9 with w=1.0
+; in vec2 fragCoord r12 (0.5 -> -0.5)
+; out vec4 fragColor -> r9
+.proc mainImage
+	; vec2 uv = fragCoord.xy / iResolution.xy;
+	mul r8, r12, r13
+	;mov r8.x, myconst.y
+	;fragColor = vec4(uv,0.5+0.5*0.3,1.0);
+
+	;mov r9.zw, shaderConst1.zw
+	mov r9, shaderConst1
+	mov r9.xy, r8.xy ; aixo no fa el mateix que abans que vol dir que no entenc com funciona el mov/swizzle, revisar linia 54
 .end
 
 ; Subroutine
