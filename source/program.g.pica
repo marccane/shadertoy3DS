@@ -6,6 +6,8 @@
 .fvec projection[4]
 .ivec unif_loop_i0
 .ivec unif_loop_i1
+.ivec unif_loop_i2
+.ivec unif_loop_i3
 
 ; Outputs - this time the type *is* used
 .out outpos position
@@ -32,67 +34,72 @@
 ; SUMMARY: vX where X is even (parell) -> position, if X is odd -> color
 .entry gmain
 .proc gmain
-	mov r15, myconst
+	; registers in the following lines should not be used in mainImage
+	mov r15, initialTrianglePos
+	mov r14, myconst
 	mov r13, iResolutionInverse; iResolution
 	
-	mov r3, initialTrianglePos ;tmpPos
 	for i0 ; 0->199
-		mov r0, r3
+		mov r15.y, r14.y ; set y back to 1.0
 		for i1 ; 0->239
 			call mainImage
-			;set vertex positions
-			add r1, r0, -r15.wyxx ; -0.5, -1.0, 0, 0
-			add r2, r0, r15.wzxx ; 0.5, -1.0, 0, 0
+			;calculate remaining vertex positions
+			add r11, r15, -r14.wyxx ; -0.5, -1.0, 0, 0
+			add r10, r15, r14.wzxx ; 0.5, -1.0, 0, 0
 			call emit_triangle_solid_color
-			add r0, r0, r15.xyxx ; 0, 1, 0, 0
+			add r15, r15, r14.xyxx ; 0, 1, 0, 0
+			nop ; crashes on hardware without dez nops
 		.end
-		add r3, r3, r15.yxxx ; 1, 0, 0, 0
+		nop
+		add r15, r15, r14.yxxx ; 1, 0, 0, 0
 	.end
 
 	for i0 ; 0->199
-		mov r0, r3
+		mov r15.y, r14.y ; set y back to 1.0
 		for i1 ; 0->239
 			call mainImage
-			;set vertex positions
-			add r1, r0, -r15.wyxx ; -0.5, -1.0, 0, 0
-			add r2, r0, r15.wzxx ; 0.5, -1.0, 0, 0
+			;calculate remaining vertex positions
+			add r11, r15, -r14.wyxx ; -0.5, -1.0, 0, 0
+			add r10, r15, r14.wzxx ; 0.5, -1.0, 0, 0
 			call emit_triangle_solid_color
-			add r0, r0, r15.xyxx ; 0, 1, 0, 0
+			add r15, r15, r14.xyxx ; 0, 1, 0, 0
+			nop
 		.end
-		add r3, r3, r15.yxxx ; 1, 0, 0, 0
+		nop
+		add r15, r15, r14.yxxx ; 1, 0, 0, 0
 	.end
 	end
 .end
 
-; in vec2 fragCoord -> r0.xy
+; in vec2 fragCoord -> r15.xy (readonly)
 ; out vec4 fragColor -> r9
 .proc mainImage
-	mul r9, r0, r13
+	mul r9, r15, r13
 	mov r9.zw, myconst.wy ; I have no idea why changing .yy to .xy or .wy has no effect
 .end
 
 ; Subroutine
 ; Inputs:
-;   r0: vertex 1 position 
-;   r1: vertex 2 position
-;   r2: vertex 3 position
+;   r15: vertex 1 position 
+;   r11: vertex 2 position
+;   r10: vertex 3 position
 ;	r9: solid color
 .proc emit_triangle_solid_color
 	; Emit the first vertex
 	setemit 0
-	mov r8, r0
+	mov r8, r15
 	call process_vertex
 	emit
 
 	; Emit the second vertex
 	setemit 1
-	mov r8, r1
+	mov r8, r11
 	call process_vertex
 	emit
 
 	; Emit the third vertex and finish the primitive
 	setemit 2, prim
-	mov r8, r2
+	mov r8, r10
 	call process_vertex
 	emit
 .end

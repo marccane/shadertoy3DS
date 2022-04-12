@@ -23,12 +23,14 @@ static const vertex vertex_list[] =
 
 static DVLB_s* program_dvlb;
 static shaderProgram_s program;
-static int uLoc_projection, uLoc_unif_loop_i0, uLoc_unif_loop_i1;
+static int uLoc_projection, uLoc_unif_loop_i0, uLoc_unif_loop_i1, uLoc_unif_loop_i2, uLoc_unif_loop_i3;
 static C3D_Mtx projection;
 //According to 3dbrew the loop will do <unif_loop_i0_iterations>+1 iterations
 //Not documented anywhere I could find but this "Integer" registers in the GPU are 1 byte only (Biggest value is 255)
 static const int unif_loop_i0_initial_value=0, unif_loop_i0_iterations=199, unif_loop_i0_increment=1; //possible off by one
 static const int unif_loop_i1_initial_value=0, unif_loop_i1_iterations=239, unif_loop_i1_increment=1; //possible off by one
+static const int unif_loop_i2_initial_value=0, unif_loop_i2_iterations=32, unif_loop_i2_increment=1; //possible off by one
+static const int unif_loop_i3_initial_value=0, unif_loop_i3_iterations=10, unif_loop_i3_increment=1; //possible off by one
 
 static void* vbo_data;
 
@@ -46,6 +48,8 @@ static void sceneInit(void)
 	uLoc_projection = shaderInstanceGetUniformLocation(program.geometryShader, "projection");
 	uLoc_unif_loop_i0 = shaderInstanceGetUniformLocation(program.geometryShader, "unif_loop_i0");
 	uLoc_unif_loop_i1 = shaderInstanceGetUniformLocation(program.geometryShader, "unif_loop_i1");
+	uLoc_unif_loop_i2 = shaderInstanceGetUniformLocation(program.geometryShader, "unif_loop_i2");
+	uLoc_unif_loop_i3 = shaderInstanceGetUniformLocation(program.geometryShader, "unif_loop_i3");
 
 	// Configure attributes for use with the vertex shader
 	C3D_AttrInfo* attrInfo = C3D_GetAttrInfo();
@@ -60,6 +64,8 @@ static void sceneInit(void)
 	C3D_FVUnifMtx4x4(GPU_GEOMETRY_SHADER, uLoc_projection, &projection);
 	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i0, unif_loop_i0_iterations, unif_loop_i0_initial_value, unif_loop_i0_increment, 0xDEAD);
 	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i1, unif_loop_i1_iterations, unif_loop_i1_initial_value, unif_loop_i1_increment, 0xDEAD);
+	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i2, unif_loop_i2_iterations, unif_loop_i2_initial_value, unif_loop_i2_increment, 0xDEAD);
+	C3D_IVUnifSet(GPU_GEOMETRY_SHADER, uLoc_unif_loop_i3, unif_loop_i3_iterations, unif_loop_i3_initial_value, unif_loop_i3_increment, 0xDEAD);
 
 	// Create the VBO (vertex buffer object)
 	vbo_data = linearAlloc(sizeof(vertex_list));
