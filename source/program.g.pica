@@ -25,7 +25,108 @@
 .constf initialTrianglePos(0.5, 1.0, 0.5, 1.0)
 
 ; Shader constants
-;.constf shaderConst1(0, 1, 0.075, 1.0)
+.constf shaderConst1(1.666666667, 0, 0, 0)
+.constf shaderConst2(0, 0, -3, 0)
+.constf shaderConst3(0.01, 0.01, 0.01, 2.0)
+
+; port of https://www.shadertoy.com/view/ldtGD4 by nicoptere
+; in vec2 fragCoord -> r15.xy (readonly)
+; out vec4 fragColor -> r9
+.proc mainImage
+	; r0 -> vec2 uv
+	; r1 -> vec3 pos
+	; r2 -> vec3 dir
+	; r3 -> vec3 ip
+	; r4 -> float t
+	; r5 -> float temp
+	
+	;vec2 uv = ( fragCoord.xy / iResolution.xy ) * 2.0 - 1.0;
+	mul r0, r15, r13
+	add r0, r0, r0
+	add r0, r0, -r14.yyyy
+	;uv.x *= iResolution.x / iResolution.y;
+	mov r1, shaderConst1
+	mul r0.x, r0.x, r1.x
+	;vec3 pos = vec3( 0.,0.,-3.);
+	mov r1, shaderConst2
+	;vec3 dir = normalize( vec3( uv, 1. ) );
+	mov r2, r0
+	mov r2.z, r14.y ; w unused
+	mov r10, r2
+	call normalize3 ; result in r11
+	mov r2, r11
+
+	;float t = 0.0;
+	mov r4, myconst.xxxx
+	;for( int i = 0; i < 32; i++) {
+	for i2
+		;ip = pos + dir * t;
+		mov r4.yz, r4.xx ; expand float to "const vec3"
+		mad r3, r4, r2, r1
+		;float temp = sdf( ip );
+		mov r10, r3
+		call sdf
+		mov r5, r11
+		;if( temp < 0.01 ) break; -> if ( 0.01 > temp )
+		cmp shaderConst3, gt, gt, r5 ; cmp uses the x and y components to do the comparison
+		breakc cmp.x
+		;t += temp;
+		add r4.x, r4.x, r5.x
+	.end
+	mov r9, r3
+	mov r9.w, ones
+.end
+
+; Subroutine
+; Inputs:
+;   r10: vector(?)
+; Destroys:
+;	r11, r12
+; Outputs:
+;	r11: float distance
+.proc sdf
+	call length3
+	mov r9, shaderConst3
+	;add r11, r11, -r9.wwww ;
+	add r11, r11, -r14.xxxx ; only .x should be necessary
+.end
+
+; Subroutine
+; Inputs:
+;   r10: vector (?)
+; Destroys:
+;	r11, r12
+; Outputs:
+;	r11: float length
+.proc length3
+	mul r11, r10, r10
+	add r12.x, r11.x, r11.y
+	add r12.x, r12.x, r11.z
+	rsq r12, r12
+	rcp r11, r12
+.end
+
+; Subroutine
+; Inputs:
+;   r10: the vec3 to normalize in xyz
+; Destroys:
+;	r11, r12
+; Outputs:
+;	r11
+.proc normalize3
+	;mov r11, r10
+	mul r11, r10, r10
+	;mul r11.x, r11.x, r11.x
+	;mul r11.y, r11.y, r11.y
+	;mul r11.z, r11.z, r11.z
+	add r12.x, r11.x, r11.y
+	add r12.x, r12.x, r11.z
+	;mov r11.x, r11.w
+	rsq r12, r12
+	mul r11, r10, r12
+.end
+
+;------------------------------------------------------------------------------
 
 ; Inputs: we will receive the following inputs:
 ; v0-v1: position/color of the first vertex
@@ -69,13 +170,6 @@
 		add r15, r15, r14.yxxx ; 1, 0, 0, 0
 	.end
 	end
-.end
-
-; in vec2 fragCoord -> r15.xy (readonly)
-; out vec4 fragColor -> r9
-.proc mainImage
-	mul r9, r15, r13
-	mov r9.zw, myconst.wy ; I have no idea why changing .yy to .xy or .wy has no effect
 .end
 
 ; Subroutine

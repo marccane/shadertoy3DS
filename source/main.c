@@ -29,7 +29,7 @@ static C3D_Mtx projection;
 //Not documented anywhere I could find but this "Integer" registers in the GPU are 1 byte only (Biggest value is 255)
 static const int unif_loop_i0_initial_value=0, unif_loop_i0_iterations=199, unif_loop_i0_increment=1; //possible off by one
 static const int unif_loop_i1_initial_value=0, unif_loop_i1_iterations=239, unif_loop_i1_increment=1; //possible off by one
-static const int unif_loop_i2_initial_value=0, unif_loop_i2_iterations=32, unif_loop_i2_increment=1; //possible off by one
+static const int unif_loop_i2_initial_value=0, unif_loop_i2_iterations=10, unif_loop_i2_increment=1; //possible off by one
 static const int unif_loop_i3_initial_value=0, unif_loop_i3_iterations=10, unif_loop_i3_increment=1; //possible off by one
 
 static void* vbo_data;
